@@ -1,0 +1,6 @@
+data_path: "date_vtem.csv"
+time_steps: 60
+batch_size: 64
+epochs: 250
+learning_rate: 0.001
+num_classes: 8
