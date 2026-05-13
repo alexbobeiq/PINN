@@ -16,13 +16,10 @@ class CNN1D_FaultClassifier(nn.Module):
         self.fc2 = nn.Linear(128, num_classes)
 
     def forward(self, x):
-        # x: [batch, time_steps, 4]. Selectăm doar presiunile P1, P2 (index 0 și 1)
-        x_pressures = x[:, :, 0:2]
+        # x: [batch, time_steps, 2] — uses only the 2 pressure features
+        x = x.transpose(1, 2)  # [batch, features, time_steps]
         
-        # Formatare pentru Conv1D: [batch, features, time_steps]
-        x_pressures = x_pressures.transpose(1, 2) 
-        
-        x = self.pool(self.relu(self.conv1(x_pressures)))
+        x = self.pool(self.relu(self.conv1(x)))
         x = self.pool(self.relu(self.conv2(x)))
         x = self.flatten(x)
         x = self.relu(self.fc1(x))

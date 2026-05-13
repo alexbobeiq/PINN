@@ -11,21 +11,14 @@ def load_config(path):
     base_path = os.path.dirname(__file__)
     abs_path = os.path.join(base_path, path)
     if not os.path.exists(abs_path):
-        raise FileNotFoundError(f"Configurația nu a fost găsită la: {abs_path}")
+        raise FileNotFoundError(f"Config not found at: {abs_path}")
     with open(abs_path, 'r') as file:
         return yaml.safe_load(file)
 
 def main():
-    # Fix pentru CUDA Error 101
-    device = torch.device('cpu')
-    if torch.cuda.is_available():
-        try:
-            _ = torch.cuda.get_device_count()
-            device = torch.device('cuda')
-        except:
-            print("CUDA raportat dar inaccesibil. Utilizăm CPU.")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    print(f"Sistemul rulează pe: {device}")
+    print(f"Sistemul ruleaza pe: {device}")
 
     # Încărcăm config-urile
     config_cnn = load_config('configs/config_cnn.yaml')
@@ -41,8 +34,20 @@ def main():
     full_train_dataset = train_loader.dataset
 
     # Lansăm experimentul de scarcity
-    fractions = [1.0, 0.3, 0.1, 0.05]
-    run_scarcity_experiment(full_train_dataset, test_loader, config_cnn, config_pinn, device, fractions)
+    fractions = [0.6, 0.4, 0.3, 0.1, 0.05]
+    results = run_scarcity_experiment(
+        full_train_dataset, test_loader, config_cnn, config_pinn, device, fractions
+    )
+    
+    # Afișăm rezumatul final
+    print("\n" + "="*60)
+    print("REZUMAT FINAL")
+    print("="*60)
+    for i, frac in enumerate(fractions):
+        cnn_f1 = results['cnn'][i]
+        pinn_f1 = results['pinn'][i]
+        winner = "PINN ✓" if pinn_f1 > cnn_f1 else "CNN ✓"
+        print(f"  {frac*100:5.0f}% date: CNN={cnn_f1:.4f}  PINN={pinn_f1:.4f}  -> {winner}")
 
 if __name__ == "__main__":
     main()
