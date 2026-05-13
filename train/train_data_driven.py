@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.optim as optim
 from models.data_driven import CNN1D_FaultClassifier
 
-def train_cnn(train_loader, config):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # type: ignore
-    model = CNN1D_FaultClassifier(time_steps=config['time_steps'], num_classes=config['num_classes']).to(device)
+def train_cnn(train_loader, config, device):
+    # Nu mai detectăm device-ul aici, îl primim din main.py
+    model = CNN1D_FaultClassifier(num_features=2, num_classes=config['num_classes']).to(device)
     
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
@@ -14,6 +14,7 @@ def train_cnn(train_loader, config):
     for epoch in range(config['epochs']):
         running_loss = 0.0
         for x_batch, y_batch in train_loader:
+            # Mutăm datele pe dispozitivul corect
             x_batch, y_batch = x_batch.to(device), y_batch.to(device)
             
             optimizer.zero_grad()
@@ -23,6 +24,4 @@ def train_cnn(train_loader, config):
             optimizer.step()
             running_loss += loss.item()
             
-        if (epoch+1) % 10 == 0:
-            print(f"CNN Epoch [{epoch+1}/{config['epochs']}] | Loss: {running_loss/len(train_loader):.4f}")
     return model

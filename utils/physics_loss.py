@@ -1,15 +1,16 @@
 import torch
 
 def calculate_physics_loss(phys_pred, inputs):
-    # Extragem valorile din tensor la ultimul pas de timp:
-    # 0: P1, 1: P2, 2: Setpoint Alimentare, 3: Grad Evacuare (ex_0)
-    p1 = inputs[:, -1, 0]
-    p2 = inputs[:, -1, 1]
+    # Index 2: Setpoint Alimentare (2500)
+    # Index 3: Grad Evacuare (10000)
+    sp_alim = inputs[:, -1, 2] 
     ex_0 = inputs[:, -1, 3]
     
-    # Un exemplu de ecuație de constrângere a debitului/presiunii:
-    # Dacă evacuarea (ex_0) e sugrumată, diferența de presiune P1-P2 dictează forța.
-    # Penalizăm rețeaua dacă 'phys_pred' deviază de la comportamentul teoretic.
-    reziduu = phys_pred.squeeze() - ((p1 - p2) * ex_0)
+    # NORMALIZARE: Împărțim la 2500 pentru ca reziduul să fie mic (ordinul 0-1)
+    # Target-ul fizic devine 1.0 (pentru regim normal)
+    target_fizic = (sp_alim / 2500.0) * (ex_0 / 10000.0)
+    predictie_scalata = phys_pred.squeeze() / 2500.0
+    
+    reziduu = predictie_scalata - target_fizic
     
     return torch.mean(reziduu**2)

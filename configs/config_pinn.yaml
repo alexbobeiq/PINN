@@ -1,7 +1,7 @@
 data_path: "date_vtem.csv"
 time_steps: 60
 batch_size: 64
-epochs: 50
+epochs: 250
 learning_rate: 0.001
 num_classes : 8
 physics_weight: 0.5
