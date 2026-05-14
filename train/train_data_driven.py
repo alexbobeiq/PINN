@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 import torch.optim as optim
 from models.data_driven import CNN1D_FaultClassifier
@@ -7,7 +6,8 @@ def train_cnn(train_loader, config, device):
     model = CNN1D_FaultClassifier(
         num_features=2,
         num_classes=config['num_classes'],
-        time_steps=config['time_steps']
+        time_steps=config['time_steps'],
+        backbone_channels=config.get('backbone_channels', [16, 32, 64])
     ).to(device)
     
     criterion = nn.CrossEntropyLoss()
@@ -22,8 +22,8 @@ def train_cnn(train_loader, config, device):
             x_scaled, y_batch = x_scaled.to(device), y_batch.to(device)
             
             optimizer.zero_grad()
-            outputs = model(x_scaled)
-            loss = criterion(outputs, y_batch)
+            logits = model(x_scaled)
+            loss = criterion(logits, y_batch)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()

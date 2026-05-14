@@ -1,6 +1,7 @@
 data_path: "date_vtem.csv"
 time_steps: 60
-batch_size: 64
-epochs: 30
+batch_size: 32
+epochs: 20
 learning_rate: 0.001
 num_classes: 8
+backbone_channels: [32, 64, 128]

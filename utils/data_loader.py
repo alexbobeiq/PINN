@@ -56,11 +56,34 @@ def get_dataloaders(data_path, time_steps, batch_size):
     labels = df['Label'].values
     
     dataset = PneumaticDataset(scaled_pressures, sp_alim, ex_0, labels, time_steps)
-    train_size = int(0.8 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = torch.utils.data.random_split(
-        dataset, [train_size, test_size], generator=torch.Generator().manual_seed(42)
-    )
+    
+    # --- SPLIT TEMPORAL PE CLASE (Solutia Suprema) ---
+    # Elimina Data Leakage-ul si garanteaza prezenta tuturor claselor in Test
+    train_indices = []
+    test_indices = []
+    
+    # Etichetele pe care le returneaza dataset-ul sunt decalate cu time_steps
+    valid_labels = labels[time_steps:]
+    unique_classes = np.unique(valid_labels)
+    
+    for c in unique_classes:
+        c_indices = np.where(valid_labels == c)[0]
+        split_point = int(0.8 * len(c_indices))
+        
+        train_idxs = c_indices[:split_point]
+        test_idxs = c_indices[split_point:]
+        
+        # PURGE GAP: Asiguram ca testul nu se suprapune deloc cu antrenarea.
+        # Sarim peste indecsii de test care s-ar suprapune cu fereastra de 60 de pasi a ultimului train.
+        if len(train_idxs) > 0 and len(test_idxs) > 0:
+            last_train_idx = train_idxs[-1]
+            test_idxs = test_idxs[test_idxs >= last_train_idx + time_steps]
+            
+        train_indices.extend(train_idxs)
+        test_indices.extend(test_idxs)
+        
+    train_dataset = torch.utils.data.Subset(dataset, train_indices)
+    test_dataset = torch.utils.data.Subset(dataset, test_indices)
     
     return (DataLoader(train_dataset, batch_size=batch_size, shuffle=True),
             DataLoader(test_dataset, batch_size=batch_size, shuffle=False),

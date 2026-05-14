@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import f1_score
 from sklearn.model_selection import StratifiedShuffleSplit
 from torch.utils.data import DataLoader, Subset
+from models.pinn_model import PINN_Classifier
 from train.train_data_driven import train_cnn
 from train.train_pinn import train_pinn
 
@@ -27,8 +28,8 @@ def get_f1_metrics(model, loader, device, is_pinn=False):
     return f1_score(y_true, y_pred, average='weighted')
 
 def run_scarcity_experiment(full_train_subset, test_loader, config_cnn, config_pinn, device,
-                            fractions=[1.0, 0.8, 0.6, 0.4, 0.3, 0.1, 0.05], n_seeds=3):
-    results = {'cnn': [], 'pinn': []}
+                            fractions=[1.0, 0.8, 0.6, 0.4, 0.3, 0.1, 0.05], n_seeds=7):
+    results = {'cnn': [], 'pinn': [], 'cnn_std': [], 'pinn_std': []}
 
     actual_dataset = full_train_subset.dataset
     indices = full_train_subset.indices
@@ -71,10 +72,14 @@ def run_scarcity_experiment(full_train_subset, test_loader, config_cnn, config_p
         
         mean_cnn = np.mean(cnn_scores)
         mean_pinn = np.mean(pinn_scores)
+        std_cnn = np.std(cnn_scores)
+        std_pinn = np.std(pinn_scores)
         results['cnn'].append(mean_cnn)
         results['pinn'].append(mean_pinn)
+        results['cnn_std'].append(std_cnn)
+        results['pinn_std'].append(std_pinn)
         winner = "PINN" if mean_pinn > mean_cnn else "CNN"
-        print(f"\n  >> REZULTAT {frac*100:.0f}%: CNN={mean_cnn:.4f}, PINN={mean_pinn:.4f} -> Castigator: {winner}")
+        print(f"\n  >> REZULTAT {frac*100:.0f}%: CNN={mean_cnn:.4f}+-{std_cnn:.4f}, PINN={mean_pinn:.4f}+-{std_pinn:.4f} -> Castigator: {winner}")
 
     plot_results(fractions, results)
     return results
@@ -82,8 +87,18 @@ def run_scarcity_experiment(full_train_subset, test_loader, config_cnn, config_p
 def plot_results(fractions, results):
     plt.figure(figsize=(10, 6))
     x_vals = [f * 100 for f in fractions]
-    plt.plot(x_vals, results['cnn'], 'o--', label='CNN (Statistic)', color='red', markersize=8)
-    plt.plot(x_vals, results['pinn'], 's-', label='PINN (Fizica)', color='green', markersize=8)
+    
+    cnn_mean = np.array(results['cnn'])
+    pinn_mean = np.array(results['pinn'])
+    cnn_std = np.array(results['cnn_std'])
+    pinn_std = np.array(results['pinn_std'])
+    
+    plt.plot(x_vals, cnn_mean, 'o--', label='CNN (Statistic)', color='red', markersize=8)
+    plt.fill_between(x_vals, cnn_mean - cnn_std, cnn_mean + cnn_std, alpha=0.15, color='red')
+    
+    plt.plot(x_vals, pinn_mean, 's-', label='PINN (Fizica)', color='green', markersize=8)
+    plt.fill_between(x_vals, pinn_mean - pinn_std, pinn_mean + pinn_std, alpha=0.15, color='green')
+    
     plt.xlabel('% Date de antrenament', fontsize=12)
     plt.ylabel('Scor F1 Weighted', fontsize=12)
     plt.title('Rezultatul Experimentului: PINN vs CNN (Data Scarcity)', fontsize=14)

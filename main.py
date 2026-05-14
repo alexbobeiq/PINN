@@ -3,6 +3,7 @@ import torch
 import os
 from utils.data_loader import get_dataloaders
 from train.train_data_driven import train_cnn
+from models.pinn_model import PINN_Classifier
 from train.train_pinn import train_pinn
 from evaluate.compare_models import run_scarcity_experiment
 
@@ -34,7 +35,7 @@ def main():
     full_train_dataset = train_loader.dataset
 
     # Lansăm experimentul de scarcity
-    fractions = [0.6, 0.4, 0.3, 0.1, 0.05]
+    fractions = [1.0, 0.8, 0.6, 0.4, 0.3, 0.2, 0.1]
     results = run_scarcity_experiment(
         full_train_dataset, test_loader, config_cnn, config_pinn, device, fractions
     )
