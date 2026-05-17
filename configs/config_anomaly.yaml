@@ -1,0 +1,7 @@
+data_path: "data/raw/date_vtem.csv"
+time_steps: 60
+batch_size: 32
+learning_rate: 0.001
+backbone_channels: [32, 64, 128]
+ae_epochs: 50
+pinn_anomaly_epochs: 50

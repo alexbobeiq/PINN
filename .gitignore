@@ -1,3 +1,4 @@
 .venv/
 date_vtem.csv
 __pycache__/
+checkpoints/

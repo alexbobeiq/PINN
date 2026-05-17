@@ -1,7 +1,13 @@
-data_path: "date_vtem.csv"
-time_steps: 60
-batch_size: 32
-epochs: 20
+# Date de antrenament: protocol structurat (307k esantioane, 20ms, leave-segment-out split)
+data_path: "data/processed/date_protocol_clean.csv"
+# Date de test extern: cross-dataset generalizare (22k esantioane, 60ms → resamplat la 20ms)
+external_test_path: "data/raw/date_vtem.csv"
+external_source_dt_ms: 60
+external_target_dt_ms: 20
+
+time_steps: 60        # 60 × 20ms = 1.2s fereastra temporala
+batch_size: 256       # GPU utilization mai buna (vs 64 anterior)
+epochs: 15            # convergenta mai rapida cu 307k esantioane
 learning_rate: 0.001
 num_classes: 8
 backbone_channels: [32, 64, 128]
