@@ -59,7 +59,7 @@ def main():
     )
 
     # --- Experiment scarcity pe datele de protocol ---
-    fractions = [1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1]
+    fractions = [1.0, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01]
     SIGMA = 0.2
     results = run_scarcity_experiment(
         train_loader.dataset, test_loader, config_cnn, config_pinn, device, fractions,
@@ -70,8 +70,8 @@ def main():
     print("REZULTATE — TEST PROTOCOL (leave-segment-out)")
     print("=" * 60)
     for i, frac in enumerate(fractions):
-        cnn_f1  = results['cnn'][i]
-        pinn_f1 = results['pinn'][i]
+        cnn_f1  = results['cnn_f1'][i]
+        pinn_f1 = results['pinn_f1'][i]
         winner  = "PINN ✓" if pinn_f1 > cnn_f1 else "CNN ✓"
         print(f"  {frac*100:5.0f}% date: CNN={cnn_f1:.4f}  PINN={pinn_f1:.4f}  -> {winner}")
 
@@ -92,8 +92,8 @@ def main():
 
     # --- Salvare modele ---
     save_models(cnn_model, pinn_model, scaler, config_cnn, metrics={
-        'cnn_f1_protocol':  float(results['cnn'][0]),   # la 100% date
-        'pinn_f1_protocol': float(results['pinn'][0]),
+        'cnn_f1_protocol':  float(results['cnn_f1'][0]),   # la 100% date
+        'pinn_f1_protocol': float(results['pinn_f1'][0]),
         'cnn_f1_vtem':      float(cnn_ext),
         'pinn_f1_vtem':     float(pinn_ext),
     })

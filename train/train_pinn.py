@@ -20,9 +20,6 @@ def train_pinn(train_loader, config, device):
     physics_weight_max = config.get('physics_weight', 0.1)
     warmup_epochs      = config.get('physics_warmup_epochs', config['epochs'] // 2)
 
-    if device.type == 'cuda' and hasattr(torch, 'compile'):
-        model = torch.compile(model)
-
     use_amp   = device.type == 'cuda'
     amp_scaler = torch.amp.GradScaler(enabled=use_amp)
 

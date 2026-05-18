@@ -17,9 +17,6 @@ def train_cnn(train_loader, config, device):
         optimizer, T_max=config['epochs'], eta_min=config['learning_rate'] / 20
     )
 
-    if device.type == 'cuda' and hasattr(torch, 'compile'):
-        model = torch.compile(model)
-
     use_amp    = device.type == 'cuda'
     amp_scaler = torch.amp.GradScaler(enabled=use_amp)
 

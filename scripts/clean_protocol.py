@@ -6,12 +6,13 @@ Curatare date_protocol.csv
 - Nota: esantionarea reala este ~20ms (NU 10ms cum era asteptat)
 """
 
-import csv
+import os
 import numpy as np
 import pandas as pd
 
-INPUT = r"../data/raw/date_protocol.csv"
-OUTPUT = r"../data/processed/date_protocol_clean.csv"
+_DIR   = os.path.dirname(os.path.abspath(__file__))
+INPUT  = os.path.join(_DIR, "../data/raw/date_protocol.csv")
+OUTPUT = os.path.join(_DIR, "../data/processed/date_protocol_clean.csv")
 
 GAP_THRESHOLD_MS = 1000   # gap considerat discontinuitate
 EDGE_ROWS = 5             # randuri eliminate la capetele fiecarui gap
@@ -71,6 +72,11 @@ def main():
 
     print(f"Randuri eliminate la capetele gap-urilor: {len(rows_to_drop)}")
     df = df.drop(index=list(rows_to_drop)).reset_index(drop=True)
+
+    # Clasa 7 = eroare senzor: +500 nu era aplicat in modul protocol → aplicam acum
+    n7 = (df["Label"] == 7).sum()
+    df.loc[df["Label"] == 7, "Presiune1_Valva1"] += 500
+    print(f"\nClasa 7: +500 aplicat la Presiune1_Valva1 ({n7} randuri)")
 
     # Adauga coloana 'segment' - ID segment continuu intre gap-uri
     diffs2 = df["Timestamp"].diff().fillna(0)
